@@ -37,14 +37,13 @@ void print_header(WavHeader &header) {
     std::cout << "=======================" << "\n";
 }
 
-int read_wav_to_buff(std::ifstream &file, std::vector<std::int16_t> &samples){
+int read_wav_to_buff(std::ifstream &file, WavHeader &header, std::vector<std::int16_t> &samples){
 
     char dataId[4];
     uint32_t dataSize;
 
     std::vector<unsigned char> buffer(64);
     file.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
-    WavHeader header;
     file.seekg(0);
     file.read(reinterpret_cast<char*>(&header), sizeof(header));
 
@@ -82,9 +81,9 @@ int main() {
         return 1;
     }
 
-     
+    WavHeader header;
     std::vector<int16_t> samples;
-    read_wav_to_buff(file, samples);
+    read_wav_to_buff(file, header, samples);
 
     
     for (auto s : samples) {
