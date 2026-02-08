@@ -37,10 +37,16 @@ void print_header(WavHeader &header) {
     std::cout << "=======================" << "\n";
 }
 
-int read_wav_to_buff(std::ifstream &file, int numSamples, std::vector<std::int16_t> &samples){
+int read_wav_to_buff(std::ifstream &file, std::vector<std::int16_t> &samples){
+
     char dataId[4];
     uint32_t dataSize;
-    samples.resize(numSamples);
+
+    std::vector<unsigned char> buffer(64);
+    file.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
+    WavHeader header;
+    file.seekg(0);
+    file.read(reinterpret_cast<char*>(&header), sizeof(header));
 
     // Read chunks until we hit "data"
     while (file) {
@@ -54,6 +60,10 @@ int read_wav_to_buff(std::ifstream &file, int numSamples, std::vector<std::int16
         // Skip this chunk
         file.seekg(dataSize, std::ios::cur);
     }
+    int numSamples = dataSize / (header.numChannels * header.bitsPerSample/8);
+
+    samples.resize(numSamples);
+
     file.read(reinterpret_cast<char*>(samples.data()),
               numSamples * sizeof(int16_t));
     if(!file){
@@ -72,18 +82,9 @@ int main() {
         return 1;
     }
 
-    std::vector<unsigned char> buffer(64);
-    file.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
-    WavHeader header;
-    file.seekg(0);
-    file.read(reinterpret_cast<char*>(&header), sizeof(header));
-
-    print_header(header);
      
-    int numSamples = 10;
-    std::vector<int16_t> samples(numSamples);
-
-    read_wav_to_buff(file, numSamples, samples);
+    std::vector<int16_t> samples;
+    read_wav_to_buff(file, samples);
 
     
     for (auto s : samples) {
